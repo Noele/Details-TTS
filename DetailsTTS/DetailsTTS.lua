@@ -1,3 +1,9 @@
+BINDING_NAME_DETAILSTTSMENU = "Open Details TTS Menu"
+BINDING_NAME_DETAILSTTSUP = "Cycle up"
+BINDING_NAME_DETAILSTTSDOWN = "Cycle down"
+BINDING_NAME_DETAILSTTSENTER = "Select a menu item"
+
+
 VITooltipsSpeechDB = VITooltipsSpeechDB or {}
 VITooltipsSpeechDB.Speech = VITooltipsSpeechDB.Speech or {
     voiceID = 2,
