@@ -1,0 +1,9 @@
+## Interface: 30403
+## Title : DetailsTTS
+## Notes: DetailsTTS
+## Author: Vampie
+## Dependencies: Details
+## SavedVariables: VITooltipsSpeechDB
+
+DetailsHook.xml
+DetailsHook.lua
