@@ -9,7 +9,6 @@ Speech.db = VITooltipsSpeechDB.Speech
 local Details = _G.Details
 
 local menuOpen = false
-local menuOptions = {"Get All Players Info", "Get Player Damage", "Get Player Healing", "Get Player Damage Taken"}
 local currentOption = 1
 local selectingPlayer = false
 local playerNames = {}
@@ -51,6 +50,7 @@ local function GetAllPlayersInfo()
     local partyNames = GetPartyMemberNames()
     local damageActors = combat:GetActorList(DETAILS_ATTRIBUTE_DAMAGE)
     local healingActors = combat:GetActorList(DETAILS_ATTRIBUTE_HEAL)
+	local miscActors = combat:GetActorList(DETAILS_ATTRIBUTE_MISC)
     local playerData = {}
 
     -- Collect damage and damage taken
@@ -69,12 +69,21 @@ local function GetAllPlayersInfo()
             playerData[actor.nome].healingDone = math.floor(actor.total or 0)
         end
     end
+	
+	-- Collect inturrupt data
+    for _, actor in ipairs(miscActors) do
+        if table.contains(partyNames, actor.nome) then
+            playerData[actor.nome] = playerData[actor.nome] or {}
+            playerData[actor.nome].interruptsDone = math.floor(actor.interrupt or 0)
+        end
+    end
+
 
     -- Format output
     local output = ""
     for playerName, data in pairs(playerData) do
-        output = output .. string.format("%s dealt %d damage, healed %d health, took %d damage.\n",
-            playerName, data.damageDone or 0, data.healingDone or 0, data.damageTaken or 0)
+        output = output .. string.format("%s dealt %d damage, healed %d health, took %d damage, inturrupted %d times.\n",
+            playerName, data.damageDone or 0, data.healingDone or 0, data.damageTaken or 0, data.interruptsDone or 0)
     end
 
     print(output)
@@ -121,6 +130,48 @@ local function GetDamageForPlayer(playerName)
                     output = output .. string.format("Spell %s - Damage %d - Hits %d\n", spellName, totalDamage, hits)
                 end
             end
+        end
+    end
+
+    print(output)
+    Speech:speak(output)
+end
+
+local function GetInterruptsForPlayer(playerName)
+    if not Details or not Details:GetCurrentCombat() then
+        print("Details is not available or no combat data.")
+        return
+    end
+
+    local combat = Details:GetCurrentCombat()
+    local miscActors = combat:GetActorList(DETAILS_ATTRIBUTE_MISC)
+    local output = ""
+
+    for _, actor in ipairs(miscActors) do
+        if actor.nome == playerName then
+            local interrupts = tonumber(actor.interrupt) or 0
+            output = output .. playerName .. " interrupted " .. math.floor(interrupts) .. " times.\n"
+        end
+    end
+
+    print(output)
+    Speech:speak(output)
+end
+
+local function GetDispellsForPlayer(playerName)
+    if not Details or not Details:GetCurrentCombat() then
+        print("Details is not available or no combat data.")
+        return
+    end
+
+    local combat = Details:GetCurrentCombat()
+    local miscActors = combat:GetActorList(DETAILS_ATTRIBUTE_MISC)
+    local output = ""
+
+    for _, actor in ipairs(miscActors) do
+        if actor.nome == playerName then
+            local dispells = tonumber(actor.dispell) or 0
+            output = output .. playerName .. " dispelled " .. math.floor(dispells) .. " times.\n"
         end
     end
 
@@ -193,6 +244,15 @@ local function GetDamageTakenForPlayer(playerName)
     Speech:speak(output)
 end
 
+local menuOptions = {
+    {Function = GetAllPlayersInfo, Text = "Get All Players Info"},
+    {Function = GetDamageForPlayer, Text = "Get Player Damage"},
+    {Function = GetHealingForPlayer, Text = "Get Player Healing"},
+    {Function = GetDamageTakenForPlayer, Text = "Get Player Damage Taken"},
+    {Function = GetInterruptsForPlayer, Text = "Get Player Interrupts"},
+    {Function = GetDispellsForPlayer, Text = "Get Player Dispells"}
+}
+
 function DetailsTTSDown()
     if not menuOpen then return end
 
@@ -201,7 +261,7 @@ function DetailsTTSDown()
         Speech:speak(playerNames[selectedPlayerIndex])
     else
         currentOption = currentOption % #menuOptions + 1
-        Speech:speak(menuOptions[currentOption])
+        Speech:speak(menuOptions[currentOption].Text)
     end
 end
 
@@ -228,7 +288,7 @@ function DetailsTTSUp()
         Speech:speak(playerNames[selectedPlayerIndex])
     else
         currentOption = (currentOption - 2) % #menuOptions + 1
-        Speech:speak(menuOptions[currentOption])
+        Speech:speak(menuOptions[currentOption].Text)
     end
 end
 
@@ -237,17 +297,15 @@ function DetailsTTSEnter()
 
     if selectingPlayer then
         local playerName = playerNames[selectedPlayerIndex]
-        if currentOption == 2 then
-            GetDamageForPlayer(playerName)
-        elseif currentOption == 3 then
-            GetHealingForPlayer(playerName)
-        elseif currentOption == 4 then
-            GetDamageTakenForPlayer(playerName)
+        local selectedOption = menuOptions[currentOption]
+
+        if selectedOption then
+            selectedOption.Function(playerName)
+            CloseMenu()
         end
-        CloseMenu()
     else
         if currentOption == 1 then
-            GetAllPlayersInfo()
+            menuOptions[1].Function()
             CloseMenu()
         else
             selectingPlayer = true
