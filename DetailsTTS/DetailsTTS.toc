@@ -5,5 +5,5 @@
 ## Dependencies: Details
 ## SavedVariables: VITooltipsSpeechDB
 
-DetailsHook.xml
-DetailsHook.lua
+DetailsTTS.xml
+DetailsTTS.lua
