@@ -2,6 +2,7 @@ BINDING_NAME_DETAILSTTSMENU = "Open Details TTS Menu"
 BINDING_NAME_DETAILSTTSUP = "Cycle up"
 BINDING_NAME_DETAILSTTSDOWN = "Cycle down"
 BINDING_NAME_DETAILSTTSENTER = "Select a menu item"
+SLASH_DETAILSTTS1 = "/detailstts"
 
 
 VITooltipsSpeechDB = VITooltipsSpeechDB or {}
@@ -96,6 +97,69 @@ local function numberToWords(num)
     return final:sub(1,1):upper() .. final:sub(2)
 end
 
+SlashCmdList["DETAILSTTS"] = function(msg)
+    local keys = {msg:match("^%s*(%S+)%s*,%s*(%S+)%s*,%s*(%S+)%s*,%s*(%S+)%s*$")}
+
+    if #keys == 4 then
+        -- Ensure no two bindings are the same
+        if keys[1]:upper() == keys[2]:upper() or keys[1]:upper() == keys[3]:upper() or keys[1]:upper() == keys[4]:upper() or keys[2]:upper() == keys[3]:upper() or keys[2]:upper() == keys[4]:upper() or keys[3]:upper() == keys[4]:upper() then
+            print("Error: No two bindings can use the same key")
+            return
+        end
+
+        -- Convert special keys like "HOME" to their appropriate WoW API names
+        local function normalizeKey(key)
+            local specialKeys = {
+                HOME = "HOME",
+                END = "END",
+                PGUP = "PAGEUP",
+                PGDN = "PAGEDOWN",
+                -- Add other special keys here if needed
+            }
+            return specialKeys[key:upper()] or key:upper()
+        end
+
+        -- Normalize the keys
+        keys[1] = normalizeKey(keys[1])
+        keys[2] = normalizeKey(keys[2])
+        keys[3] = normalizeKey(keys[3])
+        keys[4] = normalizeKey(keys[4])
+
+        -- Get current bindings for the menu actions
+        local oldMenuKey = GetBindingKey("DETAILSTTSMENU")
+        local oldUpKey = GetBindingKey("DETAILSTTSUP")
+        local oldDownKey = GetBindingKey("DETAILSTTSDOWN")
+        local oldEnterKey = GetBindingKey("DETAILSTTSENTER")
+
+        -- Unbind any current bindings
+        if oldMenuKey then SetBinding(oldMenuKey, nil) end
+        if oldUpKey then SetBinding(oldUpKey, nil) end
+        if oldDownKey then SetBinding(oldDownKey, nil) end
+        if oldEnterKey then SetBinding(oldEnterKey, nil) end
+
+        -- Set new bindings
+        SetBinding(keys[1], "DETAILSTTSMENU")
+        SetBinding(keys[2], "DETAILSTTSUP")
+        SetBinding(keys[3], "DETAILSTTSDOWN")
+        SetBinding(keys[4], "DETAILSTTSENTER")
+
+        -- Save the new bindings
+        SaveBindings(2)
+
+        -- Inform the user of the new bindings
+        print("Details TTS menu bound to " .. keys[1])
+        print("Cycle up bound to " .. keys[2])
+        print("Cycle down bound to " .. keys[3])
+        print("Select a menu item bound to " .. keys[4])
+    else
+        print("Details TTS commands:")
+        print("/detailstts KEY1,KEY2,KEY3,KEY4 - Bind menu, cycle up, cycle down, and select actions to keys")
+        print("Example: /detailstts INSERT, PAGEUP, PAGEDOWN, HOME")
+    end
+end
+
+
+
 local function GetPartyMemberNames()
     local partyNames = { UnitName("player") }
 
@@ -182,7 +246,6 @@ local function GetAllPlayersInfo()
             playerName, numberToWords(data.damageDone) or "Zero", numberToWords(data.healingDone) or "Zero", numberToWords(data.damageTaken) or "Zero", numberToWords(data.interruptsDone) or "Zero")
     end
 
-    print(output)
     Speech:speak(output)
 end
 
@@ -203,8 +266,6 @@ local function GetDamageForPlayer(playerName)
     if playerName == nil or playerName == "" then
         local playerNameWithRealm = UnitName("player")
         playerName = playerNameWithRealm:gsub("nil", "")
-
-        print("Player Name: " .. playerName)
     end
     
     local combat = Details:GetCurrentCombat()
@@ -229,7 +290,6 @@ local function GetDamageForPlayer(playerName)
         end
     end
 
-    print(output)
     Speech:speak(output)
 end
 
@@ -250,7 +310,6 @@ local function GetInterruptsForPlayer(playerName)
         end
     end
 
-    print(output)
     Speech:speak(output)
 end
 
@@ -271,7 +330,6 @@ local function GetDispellsForPlayer(playerName)
         end
     end
 
-    print(output)
     Speech:speak(output)
 end
 
@@ -283,8 +341,6 @@ local function GetHealingForPlayer(playerName)
     if playerName == nil or playerName == "" then
         local playerNameWithRealm = UnitName("player")
         playerName = playerNameWithRealm:gsub("nil", "")
-
-        print("Player Name: " .. playerName)
     end
     
     local combat = Details:GetCurrentCombat()
@@ -308,7 +364,6 @@ local function GetHealingForPlayer(playerName)
         end
     end
 
-    print(output)
     Speech:speak(output)
 end
 
@@ -320,8 +375,6 @@ local function GetDamageTakenForPlayer(playerName)
     if playerName == nil or playerName == "" then
         local playerNameWithRealm = UnitName("player")
         playerName = playerNameWithRealm:gsub("nil", "")
-
-        print("Player Name: " .. playerName)
     end
     
     local combat = Details:GetCurrentCombat()
@@ -335,8 +388,7 @@ local function GetDamageTakenForPlayer(playerName)
             output = output .. actorName .. " took " .. numberToWords(damageTaken) .. " damage.\n"
         end
     end
-
-    print(output)
+	
     Speech:speak(output)
 end
 

@@ -1,15 +1,15 @@
-<!-- VI-Tooltips Key Bindings -->
+<!-- DetailsTTS Key Bindings -->
 <Bindings>
-    <Binding name="DETAILSTTSMENU" default="F9" category="Details-TTS">
+    <Binding name="DETAILSTTSMENU" default="INSERT" category="Details-TTS">
         DetailsTTSMenu();
     </Binding>
-    <Binding name="DETAILSTTSUP"  default = "F10" category="Details-TTS">
+    <Binding name="DETAILSTTSUP"  default = "PAGEUP" category="Details-TTS">
         DetailsTTSUp();
     </Binding>
-	<Binding name="DETAILSTTSDOWN"  default = "F11" category="Details-TTS">
+	<Binding name="DETAILSTTSDOWN"  default = "PAGEDOWN" category="Details-TTS">
         DetailsTTSDown();
     </Binding>
-	<Binding name="DETAILSTTSENTER"  default = "F12" category="Details-TTS">
+	<Binding name="DETAILSTTSENTER"  default = "HOME" category="Details-TTS">
         DetailsTTSEnter();
     </Binding>
 </Bindings>
